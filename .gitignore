@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+site/
+*.spec
+markdown2pptx.bat
+/markdown2pptx
+*:Zone.Identifier

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "markdown2pptx"
+dynamic = ["version"]                     # read from src/markdown2pptx/__init__.py, see below
+description = "Convert a Markdown file into a PowerPoint deck on your own template, with Mermaid diagrams as native shapes"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = []
+keywords = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/JeanMichelDurand/markdown2pptx"
+Issues = "https://github.com/JeanMichelDurand/markdown2pptx/issues"
+Changelog = "https://github.com/JeanMichelDurand/markdown2pptx/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyinstaller>=6", "ruff"]
+
+[project.scripts]
+markdown2pptx = "markdown2pptx.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = { attr = "markdown2pptx.__version__" }
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F"]      # real errors (pyflakes) and layout (pycodestyle), no style preferences

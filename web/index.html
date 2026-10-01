@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>markdown2pptx</title>
+<meta name="description" content="Convert a Markdown file into a PowerPoint deck on your own template, with Mermaid diagrams as native shapes, in your browser.">
+<style>
+  :root { --bg: #f8fafc; --panel: #ffffff; --text: #0f172a; --muted: #475569; --line: #cbd5e1;
+          --accent: #5236ab; --accent-text: #ffffff; --error: #b91c1c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8; --line: #334155;
+            --accent: #8b74e0; --accent-text: #0f172a; --error: #f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p.lead { margin: 0 0 20px; color: var(--muted); }
+  a { color: var(--accent); }
+  textarea { width: 100%; min-height: 280px; resize: vertical; border: 1px solid var(--line); border-radius: 6px;
+             padding: 10px; background: var(--panel); color: var(--text);
+             font: 13px/1.45 ui-monospace, "Cascadia Code", Consolas, monospace; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  button, .file { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 6px; cursor: pointer;
+                  border: 1px solid var(--accent); }
+  button { background: var(--accent); color: var(--accent-text); }
+  button:disabled { opacity: .5; cursor: wait; }
+  .file { background: transparent; color: var(--accent); }
+  .file input { display: none; }
+  #status { margin-top: 12px; white-space: pre-wrap; min-height: 1.5em; }
+  #status.error { color: var(--error); }
+  footer { margin-top: 32px; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>markdown2pptx</h1>
+  <p class="lead">Convert a Markdown file into a PowerPoint deck on your own template, with Mermaid diagrams as native shapes. Runs entirely in your browser: nothing to
+    install, and your text never leaves your computer.</p>
+
+  <textarea id="src" spellcheck="false" aria-label="Input"></textarea>
+  <div class="row">
+    <button id="run" disabled>Loading…</button>
+    <label class="file">Open a file…<input id="file" type="file" accept=".txt,.md"></label>
+  </div>
+  <div id="status" role="status"></div>
+
+  <footer>
+    The first run loads Python in the page (about 10 MB, cached afterwards).
+    <a href="https://github.com/JeanMichelDurand/markdown2pptx">Source, command-line version and documentation</a>.
+    MIT licence, provided as is, without warranty.
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const status = (text, cls = "") => { $("status").className = cls; $("status").textContent = text; };
+
+// ---- Python: the package's own wheel, run by Pyodide ------------------------------------------
+const GLUE = `
+import markdown2pptx
+
+def run(text):
+    return markdown2pptx.count(text).summary()
+`;
+const pyReady = (async () => {
+  const py = await loadPyodide();
+  await py.loadPackage(["micropip"]);        // add Pyodide-built packages the project needs here
+  // wheel.txt names the wheel the pages workflow built next to this page; pure-Python deps come from PyPI
+  const wheel = (await (await fetch("wheel.txt")).text()).trim();
+  await py.pyimport("micropip").install(new URL(wheel, location.href).href);
+  py.runPython(GLUE);
+  return py;
+})();
+pyReady.then(() => { $("run").disabled = false; $("run").textContent = "Run"; })
+       .catch((e) => status("Could not load Python in this browser: " + e, "error"));
+
+async function run() {
+  $("run").disabled = true;
+  try {
+    const py = await pyReady;
+    const summary = py.globals.get("run")($("src").value);
+    status(summary);
+    document.title = "markdown2pptx: " + summary;                    // read by the self-test
+  } catch (e) {
+    const msg = String(e.message || e).trim().split("\n").pop();   // the Python error line, not the traceback
+    status(msg.replace(/^\w*Error: /, "Error: "), "error");
+    document.title = "markdown2pptx: error";
+  } finally {
+    $("run").disabled = false;
+  }
+}
+$("run").addEventListener("click", run);
+$("file").addEventListener("change", async (e) => {
+  if (e.target.files[0]) $("src").value = await e.target.files[0].text();
+});
+
+// ---- Example; #selftest runs it at once and reports to the serving process's log --------------
+fetch("examples/notes.txt").then((r) => r.ok ? r.text() : "").then((text) => {
+  $("src").value = text;
+  if (location.hash === "#selftest") run().then(() => fetch("selftest?" + encodeURIComponent(document.title)));
+});
+</script>
+</body>
+</html>

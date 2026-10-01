@@ -1,0 +1,2 @@
+A small example file.
+The release workflow runs each executable on it.
