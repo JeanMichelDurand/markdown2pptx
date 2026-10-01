@@ -36,7 +36,7 @@ jobs:
           python -m pip wheel --no-deps --wheel-dir site .
           (cd site && ls *.whl > wheel.txt)          # the page installs the wheel this file names
           cp web/index.html site/
-          cp examples/* site/examples/
+          cp -r examples/. site/examples/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

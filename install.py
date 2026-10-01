@@ -47,7 +47,7 @@ def main(argv: list[str]) -> int:
         launcher.write_text(SH, encoding="ascii", newline="\n")
         launcher.chmod(0o755)
         run = f"./{launcher.name}"
-    print(f"Ready. Run:  {run} notes.txt")
+    print(f"Ready. Run:  {run} talk.md")
     return 0
 
 

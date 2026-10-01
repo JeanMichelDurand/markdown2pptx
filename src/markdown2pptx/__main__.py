@@ -2,6 +2,7 @@
 import sys
 
 from markdown2pptx.cli import main       # absolute: PyInstaller runs this file as a script
+from markdown2pptx.windows import explorer_ui, started_from_explorer
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(explorer_ui(sys.argv[1:]) if started_from_explorer() else main())

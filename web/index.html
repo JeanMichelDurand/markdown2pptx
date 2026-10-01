@@ -6,49 +6,111 @@
 <title>markdown2pptx</title>
 <meta name="description" content="Convert a Markdown file into a PowerPoint deck on your own template, with Mermaid diagrams as native shapes, in your browser.">
 <style>
-  :root { --bg: #f8fafc; --panel: #ffffff; --text: #0f172a; --muted: #475569; --line: #cbd5e1;
-          --accent: #5236ab; --accent-text: #ffffff; --error: #b91c1c; }
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --text: #0f172a; --muted: #475569; --line: #cbd5e1;
+    --accent: #5236ab; --accent-text: #ffffff; --teal: #00797a; --error: #b91c1c; --warn: #92400e;
+  }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8; --line: #334155;
-            --accent: #8b74e0; --accent-text: #0f172a; --error: #f87171; }
+    :root {
+      --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8; --line: #334155;
+      --accent: #8b74e0; --accent-text: #0f172a; --teal: #5cc8c8; --error: #f87171; --warn: #fbbf24;
+    }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
   h1 { font-size: 1.6rem; margin: 0 0 4px; }
   p.lead { margin: 0 0 20px; color: var(--muted); }
   a { color: var(--accent); }
-  textarea { width: 100%; min-height: 280px; resize: vertical; border: 1px solid var(--line); border-radius: 6px;
-             padding: 10px; background: var(--panel); color: var(--text);
+  code { font: 13px ui-monospace, "Cascadia Code", Consolas, monospace; }
+  .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
+  .panel h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+  #drop { border: 2px dashed var(--line); border-radius: 8px; padding: 14px 16px; text-align: center; color: var(--muted); }
+  textarea { width: 100%; min-height: 300px; resize: vertical; border: 1px solid var(--line); border-radius: 6px;
+             padding: 10px; background: var(--panel); color: var(--text); margin-top: 12px;
              font: 13px/1.45 ui-monospace, "Cascadia Code", Consolas, monospace; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  #drop.over { border-color: var(--accent); color: var(--accent); }
+  #drop strong { display: block; color: var(--text); font-size: 1.05rem; margin-bottom: 4px; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
+  label.check { flex-direction: row; align-items: center; gap: 8px; }
+  input[type=text], select { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line);
+                             background: var(--panel); color: var(--text); width: 100%; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   button, .file { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 6px; cursor: pointer;
                   border: 1px solid var(--accent); }
-  button { background: var(--accent); color: var(--accent-text); }
+  button.primary { background: var(--accent); color: var(--accent-text); }
+  button.secondary, .file { background: transparent; color: var(--accent); }
   button:disabled { opacity: .5; cursor: wait; }
-  .file { background: transparent; color: var(--accent); }
   .file input { display: none; }
   #status { margin-top: 12px; white-space: pre-wrap; min-height: 1.5em; }
   #status.error { color: var(--error); }
+  #outline { list-style: none; margin: 0; padding: 0; max-height: 560px; overflow: auto; }
+  #outline li { display: grid; grid-template-columns: 2.2em 5.5em 1fr; gap: 8px; padding: 6px 4px;
+                border-bottom: 1px solid var(--line); align-items: baseline; }
+  #outline li.chapter { font-weight: 600; }
+  #outline .n { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  #outline .kind { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--teal); }
+  #outline .note { display: block; color: var(--muted); font-size: .85rem; font-weight: 400; }
+  #outline .empty { display: block; color: var(--muted); padding: 24px 0; text-align: center; grid-column: 1 / -1; }
+  .hint { color: var(--muted); font-size: .85rem; margin: 8px 0 16px; overflow-wrap: anywhere; }
+  .warn { color: var(--warn); font-size: .9rem; margin-top: 6px; }
   footer { margin-top: 32px; color: var(--muted); font-size: .85rem; }
 </style>
 </head>
 <body>
 <main>
   <h1>markdown2pptx</h1>
-  <p class="lead">Convert a Markdown file into a PowerPoint deck on your own template, with Mermaid diagrams as native shapes. Runs entirely in your browser: nothing to
-    install, and your text never leaves your computer.</p>
+  <p class="lead">Turn a Markdown file into a PowerPoint deck on your own template: headings become chapters
+    and slides, <code>```mermaid</code> blocks native, editable PowerPoint shapes, tables native tables, lists
+    real bullets. Runs entirely in your browser: nothing to install, and your text never leaves your computer.</p>
 
-  <textarea id="src" spellcheck="false" aria-label="Input"></textarea>
-  <div class="row">
-    <button id="run" disabled>Loading…</button>
-    <label class="file">Open a file…<input id="file" type="file" accept=".txt,.md"></label>
+  <div class="grid">
+    <section class="panel">
+      <h2>Markdown</h2>
+      <div id="drop"><strong>Drop a .md file here</strong>with the images it shows, if any</div>
+      <textarea id="src" spellcheck="false" aria-label="Markdown" placeholder="# Title&#10;&#10;## A slide&#10;&#10;- a point"></textarea>
+      <div class="row" style="margin-top:12px">
+        <label class="file">Open files…<input id="file" type="file" multiple accept=".md,.markdown,.txt,image/png,image/jpeg,image/gif"></label>
+        <button id="example" class="secondary">Try the example</button>
+      </div>
+      <p id="images" class="hint"></p>
+      <div class="options">
+        <label>Title <input id="title" type="text" placeholder="the document's own"></label>
+        <label>Subtitle <input id="subtitle" type="text" placeholder="the document's own"></label>
+        <label>Slide <select id="aspect"><option>16:9</option><option>4:3</option></select></label>
+        <label>Diagram colours <select id="mermaid"><option value="theme">Theme (the template's)</option>
+          <option>purple</option><option>slate</option></select></label>
+        <label>Diagram style <select id="render"><option value="mermaid">Mermaid shapes</option>
+          <option value="bpmn">BPMN (flowcharts)</option></select></label>
+        <label class="check"><input id="contents" type="checkbox" checked> Contents slide</label>
+      </div>
+      <div class="row">
+        <label class="file">Your template (.pptx, .potx)…<input id="template" type="file"
+          accept=".pptx,.potx,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.presentationml.template"></label>
+        <button id="no-template" class="secondary" hidden>No template</button>
+      </div>
+      <p id="template-info" class="hint">Optional: the deck takes its theme, fonts, layouts and slide size.</p>
+      <div class="row">
+        <button id="convert" class="primary" disabled>Loading…</button>
+      </div>
+      <div id="status" role="status"></div>
+    </section>
+    <section class="panel">
+      <h2>Deck outline</h2>
+      <ol id="outline" aria-live="polite"><li><span class="empty">Write or open Markdown to see its slides.</span></li></ol>
+      <div id="warnings"></div>
+    </section>
   </div>
-  <div id="status" role="status"></div>
 
   <footer>
-    The first run loads Python in the page (about 10 MB, cached afterwards).
+    Headings make the chapters and slide titles, a <code>---</code> line starts a new slide, <code>::: notes</code>
+    blocks are the speaker notes. <a href="https://github.com/JeanMichelDurand/markdown2pptx#markdown-conventions">All the conventions</a>.
+    The first conversion loads Python in the page (about 15 MB, cached afterwards). Diagrams are drawn by
+    <a href="https://github.com/JeanMichelDurand/mermaid2pptx">mermaid2pptx</a>: flowcharts, sequence diagrams and Gantt charts.
     <a href="https://github.com/JeanMichelDurand/markdown2pptx">Source, command-line version and documentation</a>.
     MIT licence, provided as is, without warranty.
   </footer>
@@ -58,51 +120,203 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const status = (text, cls = "") => { $("status").className = cls; $("status").textContent = text; };
+let fileName = "slides";
+const source = () => $("src").value;
 
-// ---- Python: the package's own wheel, run by Pyodide ------------------------------------------
+// ---- Python: the converter itself, the markdown2pptx wheel, run by Pyodide ------------------------
 const GLUE = `
-import markdown2pptx
+import json
+from pathlib import Path
+import markdown2pptx as j
 
-def run(text):
-    return markdown2pptx.count(text).summary()
+TEMPLATE = "/tmp/template.pptx"
+IMAGES = Path("/tmp/images")                       # the images opened with the Markdown, by file name
+
+def _opts(o):
+    o = json.loads(o)
+    blob = open(TEMPLATE, "rb").read() if o.get("template") else None
+    return j.Options(title=o["title"] or None, subtitle=o["subtitle"] or None, aspect=o["aspect"],
+                     contents=o["contents"], template=blob, mermaid_color=o.get("mermaid", "theme"),
+                     mermaid_render=o.get("render", "mermaid"), base_dir=IMAGES)
+
+def template_info():
+    from markdown2pptx.render.template import open_template
+    prs, lays, _ = open_template(open(TEMPLATE, "rb").read())
+    size = f'{prs.slide_width / 914400:.2f} x {prs.slide_height / 914400:.2f} in'
+    return json.dumps({k: v.name for k, v in lays.items()} | {"size": size})
+
+def _first_words(s):
+    """The slide's first text block, as the outline shows it: a list's items joined by ·."""
+    for b in s.blocks:
+        parts = [it.runs for it in getattr(b, "items", [])] or [getattr(b, "runs", None)]
+        text = " · ".join("".join(r.text for r in runs) for runs in parts if runs) or getattr(b, "text", "")
+        if text.strip():
+            return " ".join(text.split())
+    return ""
+
+def outline(src, o, name):
+    deck = j.plan(src, _opts(o), name)
+    slides = [{"kind": s.kind, "title": s.title, "chapter": s.chapter, "note": _first_words(s)} for s in deck.slides]
+    return json.dumps({"title": deck.title, "subtitle": deck.subtitle, "slides": slides,
+                       "chapters": len(deck.chapters()), "warnings": deck.warnings, "summary": deck.summary()})
+
+def run(src, o, name):
+    prs, deck = j.convert(src, _opts(o), name)
+    prs.save("/tmp/out.pptx")
+    return json.dumps({"summary": deck.summary(), "warnings": deck.warnings})
 `;
 const pyReady = (async () => {
   const py = await loadPyodide();
-  await py.loadPackage(["micropip"]);        // add Pyodide-built packages the project needs here
-  // wheel.txt names the wheel the pages workflow built next to this page; pure-Python deps come from PyPI
+  await py.loadPackage(["micropip", "lxml", "pillow"]);          // python-pptx's compiled dependencies
+  // wheel.txt names the wheel the pages workflow built next to this page; python-pptx and
+  // mermaid2pptx come from PyPI
   const wheel = (await (await fetch("wheel.txt")).text()).trim();
   await py.pyimport("micropip").install(new URL(wheel, location.href).href);
   py.runPython(GLUE);
   return py;
 })();
-pyReady.then(() => { $("run").disabled = false; $("run").textContent = "Run"; })
+pyReady.then((py) => { py.FS.mkdirTree("/tmp/images"); $("convert").textContent = "Convert to PowerPoint"; refresh(); })
        .catch((e) => status("Could not load Python in this browser: " + e, "error"));
 
-async function run() {
-  $("run").disabled = true;
+let template = false;                                              // a template is in Pyodide's /tmp
+const options = () => JSON.stringify({ title: $("title").value.trim(), subtitle: $("subtitle").value.trim(),
+                                       aspect: $("aspect").value, contents: $("contents").checked, template,
+                                       mermaid: $("mermaid").value, render: $("render").value });
+const pyError = (e) => String(e.message || e).trim().split("\n").pop()     // the Python error line, not the traceback
+                        .replace(/^[\w.]*(Error|Exception): /, "");
+
+// ---- The outline: what the deck will hold, before drawing it -----------------------------------
+function item(n, kind, title, note, cls = "") {
+  const li = document.createElement("li");
+  li.className = cls;
+  li.innerHTML = `<span class="n">${n}</span><span class="kind"></span><span class="t"></span>`;
+  li.querySelector(".kind").textContent = kind;
+  li.querySelector(".t").textContent = title;
+  if (note) li.querySelector(".t").append(Object.assign(document.createElement("span"), { className: "note", textContent: note }));
+  return li;
+}
+async function refresh() {
+  if (!source().trim()) { $("convert").disabled = true; return; }
+  let py;
+  try { py = await Promise.race([pyReady, Promise.resolve(null)]); } catch { return; }
+  if (!py) { status("Loading Python…"); return; }
+  const list = $("outline"), warns = $("warnings");
+  list.replaceChildren(); warns.replaceChildren();
   try {
-    const py = await pyReady;
-    const summary = py.globals.get("run")($("src").value);
-    status(summary);
-    document.title = "markdown2pptx: " + summary;                    // read by the self-test
+    const d = JSON.parse(py.globals.get("outline")(source(), options(), fileName));
+    let n = 1, chapter = null, chapterNo = 0;
+    list.append(item(n++, "title", d.title, d.subtitle));
+    if ($("contents").checked && d.chapters >= 2) list.append(item(n++, "contents", "Contents"));
+    for (const s of d.slides) {
+      if (s.chapter && s.chapter !== chapter) {
+        chapter = s.chapter; chapterNo++;
+        list.append(item(n++, "chapter", `${String(chapterNo).padStart(2, "0")}  ${s.chapter}`, "", "chapter"));
+      }
+      list.append(item(n++, s.kind, s.title, s.note.length > 140 ? s.note.slice(0, 139) + "…" : s.note));
+    }
+    for (const w of d.warnings) warns.append(Object.assign(document.createElement("div"), { className: "warn", textContent: "Warning: " + w }));
+    status(`${d.summary}.`);
+    $("convert").disabled = false;
   } catch (e) {
-    const msg = String(e.message || e).trim().split("\n").pop();   // the Python error line, not the traceback
-    status(msg.replace(/^\w*Error: /, "Error: "), "error");
-    document.title = "markdown2pptx: error";
-  } finally {
-    $("run").disabled = false;
+    list.append(item("", "", ""));
+    list.firstChild.replaceChildren(Object.assign(document.createElement("span"), { className: "empty", textContent: "No slides." }));
+    status("Error: " + pyError(e), "error");
+    $("convert").disabled = true;
   }
 }
-$("run").addEventListener("click", run);
-$("file").addEventListener("change", async (e) => {
-  if (e.target.files[0]) $("src").value = await e.target.files[0].text();
-});
 
-// ---- Example; #selftest runs it at once and reports to the serving process's log --------------
-fetch("examples/notes.txt").then((r) => r.ok ? r.text() : "").then((text) => {
-  $("src").value = text;
-  if (location.hash === "#selftest") run().then(() => fetch("selftest?" + encodeURIComponent(document.title)));
+// ---- Input: the editor, file picker, drag and drop, the example ---------------------------------
+const images = new Set();
+async function addFiles(files) {
+  const py = await pyReady;
+  let md = null;
+  for (const f of files) {
+    if (/\.(md|markdown|txt)$/i.test(f.name)) md = f;
+    else {
+      py.FS.writeFile("/tmp/images/" + f.name, new Uint8Array(await f.arrayBuffer()));
+      images.add(f.name);
+    }
+  }
+  $("images").textContent = images.size ? `Images: ${[...images].join(", ")}` : "";
+  if (md) await load(md.name, await md.text());
+  else await refresh();
+}
+async function load(name, text) {
+  $("src").value = text.replace(/^\uFEFF/, "");
+  fileName = name.replace(/\.[^.]+$/, "") || "slides";
+  status(`Loaded ${name}.`);
+  await refresh();
+}
+$("file").addEventListener("change", async (e) => addFiles([...e.target.files]));
+const drop = $("drop");
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", async (e) => {
+  e.preventDefault(); drop.classList.remove("over");
+  await addFiles([...e.dataTransfer.files]);
 });
+async function loadExample() {
+  const r = await fetch("examples/talk.md");
+  if (!r.ok) { status("The example could not be loaded.", "error"); return; }
+  await load("talk.md", await r.text());
+}
+$("example").addEventListener("click", loadExample);
+let typing = null;
+$("src").addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(refresh, 400); });
+for (const id of ["title", "subtitle", "aspect", "contents", "mermaid", "render"]) $(id).addEventListener("change", refresh);
+
+// ---- Convert and download ---------------------------------------------------------------------
+async function convert() {
+  $("convert").disabled = true;
+  status("Converting…");
+  try {
+    const py = await pyReady;
+    const res = JSON.parse(py.globals.get("run")(source(), options(), fileName));
+    const data = py.FS.readFile("/tmp/out.pptx");
+    const url = URL.createObjectURL(new Blob([data], {
+      type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: fileName + ".pptx" });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    status(`${fileName}.pptx downloaded: ${res.summary}.`);
+    document.title = "markdown2pptx: " + res.summary;                  // read by the self-test
+  } catch (e) {
+    status("Error: " + pyError(e), "error");
+    document.title = "markdown2pptx: error";
+  } finally {
+    $("convert").disabled = !source().trim();
+  }
+}
+$("convert").addEventListener("click", convert);
+
+// ---- The template: its layouts are shown as soon as it is chosen --------------------------------
+const NO_TEMPLATE = $("template-info").textContent;
+function setTemplate(on, info = NO_TEMPLATE) {
+  template = on;
+  $("aspect").disabled = on;                                     // the template's own slide size
+  $("no-template").hidden = !on;
+  $("template-info").textContent = info;
+  if (!on) $("template").value = "";
+}
+$("template").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return setTemplate(false);
+  const py = await pyReady;
+  py.FS.writeFile("/tmp/template.pptx", new Uint8Array(await f.arrayBuffer()));
+  try {
+    const t = JSON.parse(py.globals.get("template_info")());
+    setTemplate(true, `Title slide: ${t.title} · chapters: ${t.chapter} · text: ${t.text} · visuals: ${t.slide} · ${t.size}`);
+    $("mermaid").value = "theme";                                  // the diagrams take the template's colours
+  } catch (err) {
+    setTemplate(false);
+    $("template-info").textContent = `${f.name}: ${pyError(err)}`;
+  }
+});
+$("no-template").addEventListener("click", () => setTemplate(false));
+
+// #selftest converts the example at once and reports to the serving process's log
+if (location.hash === "#selftest")
+  pyReady.then(loadExample).then(convert).then(() => fetch("selftest?" + encodeURIComponent(document.title)));
 </script>
 </body>
 </html>

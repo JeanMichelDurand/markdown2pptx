@@ -21,7 +21,7 @@ body:
     id: command
     attributes:
       label: Command line
-      placeholder: markdown2pptx notes.txt
+      placeholder: markdown2pptx talk.md --template brand.pptx
   - type: input
     id: version
     attributes:

@@ -2,4 +2,8 @@
 
 
 class InputError(ValueError):
-    """The input cannot be processed; the message says why, in words a user understands."""
+    """The Markdown cannot be converted; the message says why, in words a user understands."""
+
+
+class TemplateError(InputError):
+    """The --template file cannot be used; the message says why."""
