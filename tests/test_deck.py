@@ -84,11 +84,24 @@ def test_short_text_above_a_visual_long_text_beside_it():
     assert layout_problems(prs) == []
 
 
+def test_a_long_cell_wraps_and_its_row_grows():
+    long = "a sentence that goes on " * 6
+    prs = reopen(convert(f"## T\n\n| When | What |\n|---|---|\n| 13:30 | {long} |\n| 13:42 | short |\n")[0])
+    table = shapes(prs.slides[1], "deck:table")[0].table
+    assert table.cell(1, 1).text_frame.text == long.strip()
+    assert table.rows[1].height > table.rows[2].height
+
+
 def test_pictures_keep_their_ratio_and_alt_text(tmp_path):
     (tmp_path / "a.png").write_bytes(png(400, 100))
     prs = reopen(convert("## P\n\n![a chart](a.png)\n", Options(base_dir=tmp_path))[0])
     (pic,) = shapes(prs.slides[1], "deck:picture")
     assert abs(pic.width / pic.height - 4) < 0.01 and pic._element.nvPicPr.cNvPr.get("descr") == "a chart"
+    assert pic.width == 2 * 400 * 9525                     # a small image grows to twice its size at 96 dpi
+    (tmp_path / "b.png").write_bytes(png(2000, 500))
+    prs = reopen(convert("## P\n\n![](b.png)\n", Options(base_dir=tmp_path))[0])
+    (pic,) = shapes(prs.slides[1], "deck:picture")
+    assert pic.width > prs.slide_width * 0.8                # a large one fills the slide's width
 
 
 def test_speaker_notes_and_author(monkeypatch):

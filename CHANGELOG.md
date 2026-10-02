@@ -19,13 +19,14 @@ All notable changes to this project are recorded here. The format follows
 - Mermaid flowcharts, sequence diagrams and Gantt charts as native, editable shapes through
   mermaid2pptx, scaled into the slide, in the template's theme colours (`--mermaid-color`,
   `--mermaid-render bpmn`); other diagram types shown as source, with a warning.
-- GitHub tables as native tables with their column alignment; images as pictures with alt text;
+- GitHub tables as native tables with their column alignment, long cells wrapped; images as
+  pictures with alt text, scaled to fit;
   bullet, numbered and task lists; bold, italic, code, strike and links as styled runs; block
   quotes and callouts; fenced code; speaker notes from `::: notes` and HTML comments; YAML front
   matter (title, subtitle, author).
 - Text sized to fit its box, with a warning when it cannot.
 - Command line, Python API (`plan`, `convert`), Windows executable with a file dialog, and a
-  browser version with a live outline, image upload and a template picker.
+  browser version with a live outline, image upload, a template picker and five examples to load.
 
 [Unreleased]: ../../compare/v0.1.0...HEAD
 [0.1.0]: ../../releases/tag/v0.1.0
