@@ -16,6 +16,6 @@ from .errors import InputError, TemplateError
 from .model import Deck, Mermaid, Picture, Slide, Table
 from .options import AUTHOR_ENV, TEMPLATE_ENV, Options
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = ["AUTHOR_ENV", "Deck", "InputError", "Mermaid", "Options", "Picture", "Slide", "Table", "TEMPLATE_ENV",
            "TemplateError", "convert", "plan", "__version__"]
