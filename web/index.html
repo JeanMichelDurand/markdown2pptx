@@ -46,6 +46,8 @@
   button.secondary, .file { background: transparent; color: var(--accent); }
   button:disabled { opacity: .5; cursor: wait; }
   .file input { display: none; }
+  label.examples { flex-direction: row; align-items: center; gap: 8px; }
+  label.examples select { width: auto; }
   #status { margin-top: 12px; white-space: pre-wrap; min-height: 1.5em; }
   #status.error { color: var(--error); }
   #outline { list-style: none; margin: 0; padding: 0; max-height: 560px; overflow: auto; }
@@ -75,7 +77,15 @@
       <textarea id="src" spellcheck="false" aria-label="Markdown" placeholder="# Title&#10;&#10;## A slide&#10;&#10;- a point"></textarea>
       <div class="row" style="margin-top:12px">
         <label class="file">Open files…<input id="file" type="file" multiple accept=".md,.markdown,.txt,image/png,image/jpeg,image/gif"></label>
-        <button id="example" class="secondary">Try the example</button>
+        <label class="examples">Or try an example
+          <select id="example">
+            <option value="">Choose…</option>
+            <option value="talk.md">Proposal: self-service reporting</option>
+            <option value="incident-review.md">Post-incident review, with a chart</option>
+            <option value="project-plan.md">Project kick-off: Gantt, RACI table</option>
+            <option value="architecture.md">Architecture review: code, options table</option>
+            <option value="git-training.md">Training: Git for analysts</option>
+          </select></label>
       </div>
       <p id="images" class="hint"></p>
       <div class="options">
@@ -255,12 +265,24 @@ drop.addEventListener("drop", async (e) => {
   e.preventDefault(); drop.classList.remove("over");
   await addFiles([...e.dataTransfer.files]);
 });
-async function loadExample() {
-  const r = await fetch("examples/talk.md");
+// an example's images are fetched next to it and placed where opened images go, by file name
+async function loadExample(name) {
+  const r = await fetch("examples/" + name);
   if (!r.ok) { status("The example could not be loaded.", "error"); return; }
-  await load("talk.md", await r.text());
+  const text = await r.text();
+  const py = await pyReady;
+  for (const [, url] of text.matchAll(/!\[[^\]]*\]\(<?([^)\s>]+)>?/g)) {
+    if (/^(https?|data):/.test(url)) continue;
+    const img = await fetch("examples/" + url);
+    if (!img.ok) continue;
+    const file = url.split("/").pop();
+    py.FS.writeFile("/tmp/images/" + file, new Uint8Array(await img.arrayBuffer()));
+    images.add(file);
+  }
+  $("images").textContent = images.size ? `Images: ${[...images].join(", ")}` : "";
+  await load(name, text);
 }
-$("example").addEventListener("click", loadExample);
+$("example").addEventListener("change", async (e) => { if (e.target.value) await loadExample(e.target.value); });
 let typing = null;
 $("src").addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(refresh, 400); });
 for (const id of ["title", "subtitle", "aspect", "contents", "mermaid", "render"]) $(id).addEventListener("change", refresh);
@@ -314,9 +336,15 @@ $("template").addEventListener("change", async (e) => {
 });
 $("no-template").addEventListener("click", () => setTemplate(false));
 
-// #selftest converts the example at once and reports to the serving process's log
+// #selftest converts every example at once and reports each to the serving process's log
 if (location.hash === "#selftest")
-  pyReady.then(loadExample).then(convert).then(() => fetch("selftest?" + encodeURIComponent(document.title)));
+  pyReady.then(async () => {
+    for (const o of [...$("example").options].filter((o) => o.value)) {
+      await loadExample(o.value);
+      await convert();
+      await fetch("selftest?" + encodeURIComponent(o.value + ": " + document.title));
+    }
+  });
 </script>
 </body>
 </html>

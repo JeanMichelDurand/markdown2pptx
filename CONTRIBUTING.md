@@ -51,7 +51,9 @@ src/markdown2pptx/
     style.py        colours, page grid, text boxes, placeholders, footer
 tests/              one file per module; helpers.py builds templates and checks layouts
 web/index.html      the browser version (Pyodide installs the package's wheel)
-examples/talk.md    the example: CI and the release smoke-test convert it, the web page loads it
+examples/           five talks: the tests and CI convert them all, the release smoke-tests talk.md,
+                    the web page's menu loads them (test_web checks the menu lists each one)
+docs/img/          the README's slide screenshots, exported from the examples by PowerPoint
 install.py          a venv and a launcher, for people who get the folder as a zip
 ```
 

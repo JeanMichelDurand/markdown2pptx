@@ -17,6 +17,63 @@ browser. PowerPoint is only needed to open the result.
 Sibling of [mermaid2pptx](https://github.com/JeanMichelDurand/mermaid2pptx) (one diagram → one
 slide) and [jupy2pptx](https://github.com/JeanMichelDurand/jupy2pptx) (a notebook → a deck).
 
+## Example
+
+Two slides of [`examples/project-plan.md`](examples/project-plan.md), a project kick-off:
+
+````markdown
+## How the data moves
+
+```mermaid
+flowchart LR
+    subgraph Old [Old CRM]
+        X[Export] --> V[Validate]
+    end
+    subgraph New [New CRM]
+        L[Load] --> R{Reconciled?}
+    end
+    V --> L
+    R -->|yes| S([Sign-off])
+    R -->|no| F[Fix the mapping]
+    F --> X
+```
+
+Each trial migration runs this loop until the counts and totals match.
+
+## Who does what
+
+| Task                 | Sales ops | IT | Sales managers | Vendor |
+|:---------------------|:---------:|:--:|:--------------:|:------:|
+| Data cleaning        |     R     | C  |       A        |        |
+| CRM configuration    |     A     | C  |       C        |   R    |
+…
+
+R: responsible, A: accountable, C: consulted, I: informed.
+````
+
+`markdown2pptx project-plan.md` draws them as below, on PowerPoint's default look: the diagram is
+native shapes you can move and restyle, the table a native table that keeps the centred columns.
+With `--template`, the same slides take your template's fonts, colours and layouts.
+
+| `## How the data moves` | `## Who does what` |
+|---|---|
+| <img src="https://raw.githubusercontent.com/JeanMichelDurand/markdown2pptx/main/docs/img/data-moves.png" width="440" alt="Slide: the flowchart drawn as native PowerPoint shapes, two subgraphs and a loop"> | <img src="https://raw.githubusercontent.com/JeanMichelDurand/markdown2pptx/main/docs/img/who-does-what.png" width="440" alt="Slide: the RACI table as a native PowerPoint table, centred columns"> |
+
+The [examples](examples/) folder has five talks, each a full deck (title, contents, chapters);
+the [browser version](https://jeanmicheldurand.github.io/markdown2pptx/) loads any of them:
+
+| Example | Shows |
+|---|---|
+| [`talk.md`](examples/talk.md) | a proposal: flowchart, sequence diagram, Gantt chart, callout, `---` slide break |
+| [`incident-review.md`](examples/incident-review.md) | a post-incident review: a picture, a timeline table, a task list |
+| [`project-plan.md`](examples/project-plan.md) | a project kick-off: Gantt with milestones, subgraphs, a centred RACI table |
+| [`architecture.md`](examples/architecture.md) | an architecture review: `classDef` colours, a JSON code block, an options table |
+| [`git-training.md`](examples/git-training.md) | a training session: shell commands, inline code, a numbered exercise, a checklist |
+
+| Picture (`![…](images/checkout-latency.png)`) | Sequence diagram |
+|---|---|
+| <img src="https://raw.githubusercontent.com/JeanMichelDurand/markdown2pptx/main/docs/img/latency-picture.png" width="440" alt="Slide: a latency chart picture filling the slide"> | <img src="https://raw.githubusercontent.com/JeanMichelDurand/markdown2pptx/main/docs/img/failure-chain.png" width="440" alt="Slide: a sequence diagram with notes, as native shapes, with a line of text above"> |
+
 ## Install
 
 Pick one:

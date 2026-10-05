@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           markdown2pptx --version
-          markdown2pptx examples/talk.md -o smoke.pptx
+          for f in examples/*.md; do markdown2pptx "$f" -o smoke.pptx; done
 
   # The one check branch protection requires (.github/rulesets/main.json): green only when every
   # job above is, so adding or renaming a job never needs a settings change.

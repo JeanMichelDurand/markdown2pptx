@@ -24,7 +24,7 @@ def glue(tmp: Path) -> dict:
 
 def test_outline_and_run_on_the_example(tmp_path):
     g = glue(tmp_path)
-    text = EXAMPLES[0].read_text(encoding="utf-8")
+    text = next(p for p in EXAMPLES if p.name == "talk.md").read_text(encoding="utf-8")
     d = json.loads(g["outline"](text, json.dumps(OPTS), "talk"))
     assert d["title"] == "Moving the team to self-service reporting" and d["chapters"] == 2 and d["warnings"] == []
     assert {s["kind"] for s in d["slides"]} == {"diagram", "table", "text"}
@@ -55,3 +55,8 @@ def test_template_info_and_run_with_a_template(tmp_path):
                                                 "size": "10.00 x 7.50 in"}
     json.loads(g["run"](EXAMPLES[0].read_text(encoding="utf-8"), json.dumps(OPTS | {"template": True}), "talk"))
     assert Presentation(tmp_path / "out.pptx").slide_width == 9144000
+
+
+def test_the_examples_menu_lists_every_example():
+    menu = re.findall(r'<option value="([^"]+\.md)">', PAGE.read_text(encoding="utf-8"))
+    assert sorted(menu) == [p.name for p in EXAMPLES]

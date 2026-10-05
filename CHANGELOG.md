@@ -6,6 +6,21 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-02
+
+### Added
+
+- Four more examples (post-incident review, project kick-off, architecture review, training), and
+  a menu on the web page that loads any of them, with its images. A README example with slides.
+
+### Fixed
+
+- The macOS and Linux executables failed on the first slide with speaker notes.
+- A large picture was drawn a few pixels wide: it now fills its area, and a small one grows to
+  twice its size at most.
+- Table cells were cut at 40 characters: they now wrap, the row grows, and a short table's text
+  starts at 16 pt.
+
 ## [0.1.0] - 2026-10-01
 
 ### Added
@@ -27,5 +42,6 @@ All notable changes to this project are recorded here. The format follows
 - Command line, Python API (`plan`, `convert`), Windows executable with a file dialog, and a
   browser version with a live outline, image upload and a template picker.
 
-[Unreleased]: ../../compare/v0.1.0...HEAD
+[Unreleased]: ../../compare/v0.1.1...HEAD
+[0.1.1]: ../../compare/v0.1.0...v0.1.1
 [0.1.0]: ../../releases/tag/v0.1.0

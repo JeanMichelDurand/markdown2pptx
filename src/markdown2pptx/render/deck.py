@@ -136,7 +136,8 @@ def chapter_slide(prs, page: Page, lays: dict, number: int, title: str, footer_t
 
 def _picture(s, p: Picture, x, y, w, h):
     px_w, px_h = Image.from_blob(p.blob).size
-    scale = min(w / max(px_w, 1), h / max(px_h, 1), 2.0)          # a small image grows, twice at most
+    natural = 914400 // 96                                         # EMU a pixel, at screen resolution
+    scale = min(w / max(px_w, 1), h / max(px_h, 1), 2 * natural)   # a small image grows, twice at most
     pw, ph = int(px_w * scale), int(px_h * scale)
     pic = s.shapes.add_picture(io.BytesIO(p.blob), x + (w - pw) // 2, y + (h - ph) // 2, pw, ph)
     pic.name = "deck:picture"
